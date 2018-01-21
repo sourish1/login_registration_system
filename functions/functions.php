@@ -35,6 +35,7 @@ function display_message()
 function token_generator()
 {
 	$token = md5(uniqid(mt_rand(), true));
+	$_SESSION['token'] = $token;
 	return $token;
 }
 
@@ -300,6 +301,120 @@ function logged_in()
 		return false;
 	}
 }
+
+
+function recover_password()
+{
+	if($_SERVER['REQUEST_METHOD'] == "POST")
+	{
+		if(isset($_SESSION['token']) && $_POST['token'] === $_SESSION['token'])
+		{
+			$email = clean($_POST['email']);
+			if(email_exists($email))
+			{
+				$validation_code = md5($email + microtime());
+				setcookie('temp_access_code', $validation_code, time()+ 900);
+				$validation_code = escape($validation_code);
+				$email = escape($email);
+				$sql = "UPDATE users SET validation_code='$validation_code' WHERE email='$email'";
+				$result = query($sql);
+				confirm($result);
+				$subject = "Please reset your password";
+				$message = "Here is your password reset code $validation_code
+				Click here to reset your password http://127.0.0.1/login/code.php?email=$email&code=$validation_code";
+				$headers = "From: noreply@mywebsite.com";
+				if(!send_email($email, $subject, $message, $headers))
+				{
+					echo validation_errors("email cannot be sent");
+				}
+
+				set_message("<p class='bg-success text-center'>Please check the email or spam folder for a password reset code</p>");
+				redirect("index.php");
+
+			}else {
+				echo validation_errors("This email doesnot exist");
+			}
+		}else {
+			redirect("index.php");
+		}
+
+		if(isset($_POST['cancel_submit']))
+		{
+			redirect("login.php");
+		}
+
+	}
+}
+
+
+function validate_code()
+{
+	if(isset($_COOKIE['temp_access_code']))
+	{
+		if(!isset($_GET['email']) && !isset($_GET['code']))
+			{
+				redirect("index.php");
+			}else if(empty($_GET['email']) || empty($_GET['code']))
+			{
+				redirect("index.php");
+			}else {
+				if(isset($_POST['code']))
+				{
+					$email = clean($_GET['email']);
+					$email = escape($email);
+					$validation_code = clean($_POST['code']);
+					$validation_code = escape($validation_code);
+					$sql = "SELECT * FROM users WHERE validation_code='$validation_code' AND email='$email'";
+					$result = query($sql);
+					confirm($result);
+					if(row_count($result) == 1)
+					{
+						setcookie('temp_access_code', $validation_code, time()+ 300);
+						redirect("reset.php?email=$email&code=$validation_code");
+					}else {
+						echo validation_errors("Sorry! Wrong validation code");
+					}
+
+				}
+			}
+
+	}else {
+		set_message("<p class='bg-danger text-center'>Sorry. Your validation code has expired</p>");
+		redirect("recover.php");
+	}
+}
+
+
+function password_reset()
+{
+	if(isset($_COOKIE['temp_access_code']))
+	{
+		if(isset($_GET['email']) && isset($_GET['code']))
+			{
+				if(isset($_SESSION['token']) && isset($_POST['token']) && $_POST['token'] === $_SESSION['token'])
+				{
+					if($_POST['password'] === $_POST['confirm_password'])
+					{
+					$password = escape($_POST['password']);
+					$updated_password = md5($password);
+					$email = clean($_GET['email']);
+					$email = escape($email);
+					$sql = "UPDATE users SET password='$updated_password', validation_code=0 WHERE email='$email'";
+					$result = query($sql);
+					confirm($result);
+					set_message("<p class='bg-success text-center'>Your password has been updated. Please login</p>");
+					redirect("login.php");
+				}else {
+					echo validation_errors("Password fields donot match");
+				}
+				}
+			}
+	}else {
+		set_message("<p class='bg-danger text-center'>Sorry. Your time has expired</p>");
+		redirect("recover.php");
+	}
+}
+
 
 
  ?>

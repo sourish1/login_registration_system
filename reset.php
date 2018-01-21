@@ -1,7 +1,8 @@
 <?php include("includes/header.php") ?>
 <div class="row">
 	<div class="col-lg-6 col-lg-offset-3">
-
+		<?php display_message(); ?>
+		<?php password_reset(); ?>
 	</div>
 </div>
     	<div class="row">
@@ -34,12 +35,12 @@
 											</div>
 										</div>
 									</div>
-									<input type="hidden" class="hide" name="token" id="token" value="">
+									<input type="hidden" class="hide" name="token" id="token" value="<?php echo token_generator(); ?>">
 								</form>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>a
+		</div>
 <?php include("includes/footer.php") ?>
