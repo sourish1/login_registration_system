@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 $con = mysqli_connect('localhost','root','','login_db');
 
@@ -7,7 +7,7 @@ $con = mysqli_connect('localhost','root','','login_db');
 function escape($string)
 {
 	global $con;
-	return escape_real_escape_string($con, $query);
+	return mysqli_real_escape_string($con, $string);
 }
 
 function query($query)
@@ -18,7 +18,7 @@ function query($query)
 
 function fetch_array($result)
 {
-	global $con;
+	
 	return mysqli_fetch_array($result);
 
 }

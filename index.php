@@ -3,16 +3,12 @@
 <?php include("includes/nav.php"); ?>
 
 <div class="jumbotron">
-	<h1 class="text-center">HomePage</h1>
+	<?php display_message(); ?>
+	<h1 class="text-center">HOME</h1>
 </div>
 
-<?php 
+<?php
 
-$sql = "SELECT * FROM users";
-$result = query($sql);
-confirm($result);
-$row = fetch_array($result);
-echo $row['username'];
 
  ?>
 
